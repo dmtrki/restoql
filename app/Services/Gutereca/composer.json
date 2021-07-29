@@ -1,0 +1,34 @@
+{
+    "name": "acerotser/gutereca",
+    "description": "A Gutenberg implementation for Laravel",
+    "license": "GPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Dmitry Ki",
+            "email": "dm.kichigin@ya.ru"
+        }
+    ],
+    "require": {
+        "embed/embed": "^3.3"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^3.7",
+        "phpunit/phpunit": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Acerotser\\Gutereca\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Acerotser\\Gutereca\\Test\\": "tests"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": "Acerotser\\Gutereca\\GuterecaServiceProvider"
+        }
+    }
+
+}
