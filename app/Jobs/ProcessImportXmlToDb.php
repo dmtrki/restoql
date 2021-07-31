@@ -82,4 +82,20 @@ class ProcessImportXmlToDb implements ShouldQueue
         DB::table('import_nodes')->insertOrIgnore(['data' => json_encode($data)]);
       }
     }
+
+    public function addCurrencies()
+    {
+        $xml = XML::import(storage_path('app/31-07-21.xml'))->get();
+        $productsXml = $xml->products;
+        foreach ($productsXml as $product) {
+            if(!empty($product->currency) && !Currency::where('title',"$product->currency")->exists()){
+                Currency::Create([
+                    'title'    => "$product->currency",
+                    'code' => '',
+                    'symbol' => '',
+                    'rate' => 1
+                ]);
+            }
+        }
+    }
 }

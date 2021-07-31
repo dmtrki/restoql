@@ -9,6 +9,11 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Str;
+use Illuminate\Filesystem\Filesystem;
+use Spatie\MediaLibrary\Models\Media;
 use Carbon\Carbon;
 
 class CheckImportFile implements ShouldQueue
@@ -23,9 +28,6 @@ class CheckImportFile implements ShouldQueue
     public function __construct()
     {
       $this->onQueue('import');
-      $this->now = Carbon::now();
-      $this->todayFileName = $this->now->format('d-m-y').'.xml';
-      $this->pathToToday =storage_path('app/'.$this->todayFileName);
     }
 
     /**
@@ -35,10 +37,15 @@ class CheckImportFile implements ShouldQueue
      */
     public function handle()
     {
-      if (Storage::disk('import')->missing($this->todayFileName)) return;
-      if (!file_exists($this->pathToToday)) {
-        $importFile = Storage::disk('import')->get($this->todayFileName);
-        Storage::disk('local')->put($this->todayFileName, $importFile);
+      DB::table('import_nodes')->truncate();
+
+      $now = Carbon::now();
+      $todayFileName = $now->format('d-m-y').'.xml';
+      $pathToToday = storage_path('app/'.$todayFileName);
+      if (Storage::disk('import')->missing($todayFileName)) return;
+      if (!file_exists($pathToToday)) {
+        $importFile = Storage::disk('import')->get($todayFileName);
+        Storage::put($todayFileName, $importFile);
       }
     }
 }

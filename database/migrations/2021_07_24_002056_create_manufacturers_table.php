@@ -19,8 +19,8 @@ class CreateManufacturersTable extends Migration
             $table->string('slug')->unique()->index();
             $table->string('title');
             $table->string('country_code')->nullable();
-            $table->text('description');
-            $table->json('details');
+            $table->text('description')->nullable();
+            $table->json('details')->nullable();
         });
     }
 

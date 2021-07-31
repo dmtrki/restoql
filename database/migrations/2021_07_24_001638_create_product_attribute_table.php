@@ -14,9 +14,11 @@ class CreateProductAttributeTable extends Migration
     public function up()
     {
         Schema::create('product_attribute', function (Blueprint $table) {
+            $table->unsignedBigInteger('product_id')->index();
+            $table->unsignedBigInteger('attribute_id');
             $table->efficientUuid('product_uuid');
             $table->efficientUuid('attribute_uuid');
-            $table->string('value');
+            $table->string('value')->nullable();
         });
     }
 

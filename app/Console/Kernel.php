@@ -24,7 +24,20 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+      $schedule->job(new ProcessImportXmlToDb, 'import')
+                ->withoutOverlapping()
+                ->pingBefore('https://api.restoreca.ru/import/products')
+                ->timezone('Europe/Samara')
+                ->dailyAt('01:57');
+      $schedule->job(new ProcessImportCategories, 'import')
+                ->withoutOverlapping()
+                ->timezone('Europe/Samara')
+                ->dailyAt('02:00');
+      $schedule->job(new ProcessImportProducts, 'import')
+                ->withoutOverlapping()
+                ->timezone('Europe/Samara')
+                ->dailyAt('02:05');
+
     }
 
     /**

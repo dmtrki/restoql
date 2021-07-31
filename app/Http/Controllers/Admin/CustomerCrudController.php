@@ -28,7 +28,7 @@ class CustomerCrudController extends CrudController
     {
         CRUD::setModel(\App\Models\Customer::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/customer');
-        CRUD::setEntityNameStrings('Покупатель', 'Покупатели');
+        CRUD::setEntityNameStrings('customer', 'customers');
     }
 
     /**
@@ -39,7 +39,7 @@ class CustomerCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-        
+        CRUD::setFromDb(); // columns
 
         /**
          * Columns can be defined using the fluent syntax or array syntax:
@@ -58,7 +58,7 @@ class CustomerCrudController extends CrudController
     {
         CRUD::setValidation(CustomerRequest::class);
 
-        
+        CRUD::setFromDb(); // fields
 
         /**
          * Fields can be defined using the fluent syntax or array syntax:

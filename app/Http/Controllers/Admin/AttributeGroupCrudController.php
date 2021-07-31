@@ -27,8 +27,8 @@ class AttributeGroupCrudController extends CrudController
     public function setup()
     {
         CRUD::setModel(\App\Models\AttributeGroup::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/attributegroup');
-        CRUD::setEntityNameStrings('attributegroup', 'attribute_groups');
+        CRUD::setRoute(config('backpack.base.route_prefix') . '/attribute-group');
+        CRUD::setEntityNameStrings('attribute group', 'attribute groups');
     }
 
     /**

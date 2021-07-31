@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\ProductRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Gaspertrix\Backpack\DropzoneField\Traits\HandleAjaxMedia;
+use App\Traits\AjaxMediable;
 
 /**
  * Class ProductCrudController
@@ -19,7 +19,7 @@ class ProductCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
-    use HandleAjaxMedia;
+    use AjaxMediable;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -29,7 +29,7 @@ class ProductCrudController extends CrudController
     public function setup()
     {
         CRUD::setModel(\App\Models\Product::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/product');
+        CRUD::setRoute(config('backpack.base.route_prefix') . '/products');
         CRUD::setEntityNameStrings('товар', 'товары');
         $this->crud->denyAccess('show');
     }
@@ -61,6 +61,12 @@ class ProductCrudController extends CrudController
               ->label('Создан');
         CRUD::column('updated_at')
               ->label('Обновлен');
+
+        /**
+         * Columns can be defined using the fluent syntax or array syntax:
+         * - CRUD::column('price')->type('number');
+         * - CRUD::addColumn(['name' => 'price', 'type' => 'number']); 
+         */
     }
 
     /**
@@ -73,39 +79,74 @@ class ProductCrudController extends CrudController
     {
         CRUD::setValidation(ProductRequest::class);
 
-        CRUD::field('title');
-        CRUD::field('slug');
-        CRUD::field('description');
-        $this->crud->addField([
-          'label' => 'Основное изображение',
+        $tab = 'Основная информация';
+
+        CRUD::addField([
+            'label' => 'Название',
+            'type' => 'text',
+            'name' => 'title',
+            'tab' => $tab
+        ]);
+        CRUD::addField([
+            'label' => 'Описание',
+            'type' => 'easymde',
+            'name' => 'description',
+            'tab' => $tab
+        ]);
+        CRUD::addField([    
+            'label' => 'Категория',
+            'type' => 'relationship',
+            'name' => 'category_uuid',
+            'attribute' => 'title',
+            'model' => 'App\Models\ProductCategory',
+            'placeholder' => 'Выберите из списка',
+            'tab' => $tab
+        ]);
+        CRUD::addField([
+            'label' => 'Производитель',
+            'type' => 'relationship',
+            'name' => 'manufacturer_uuid',
+            'attribute' => 'title',
+            'model' => 'App\Models\Manufacturer',
+            'placeholder' => 'Выберите из списка',
+            'tab' => $tab
+        ]);
+        CRUD::addField([
+            'label' => 'Цена в рублях',
+            'type' => 'number',
+            'name' => 'price',
+        ]);
+        CRUD::addField([
+            'label' => 'Количество на складе',
+            'type' => 'number',
+            'name' => 'quantity',
+        ]);
+
+        $tab = 'Фотографии';
+
+        CRUD::addField([
+          'label' => 'Фотографии товара',
           'type' => 'dropzone_media',
-          'name' => 'main',
-          'collection' => 'main',
+          'name' => 'photos',
+          'collection' => 'photos',
           'options' => [
             'thumbnailHeight' => 244,
             'maxFilesize' => 10,
             'addRemoveLinks' => true,
             'createImageThumbnails' => true,
           ],
-        ]);        
-        $this->crud->addField([
-          'label' => 'Дополнительные фото',
-          'type' => 'dropzone_media',
-          'name' => 'gallery',
-          'collection' => 'gallery',
-          'options' => [
-            'thumbnailHeight' => 55,
-            'maxFilesize' => 10,
-            'addRemoveLinks' => true,
-            'createImageThumbnails' => true,
-          ],
+            'tab' => $tab
         ]);
-        CRUD::field('external');
-        CRUD::field('category_id');
-        CRUD::field('manufacturer_id');
-        CRUD::field('price');
-        CRUD::field('quantity');
-        CRUD::field('options');
+
+        $tab = 'Дополнительно';
+
+        CRUD::addField([
+          'label' => 'Дополнительно',
+          'type' => 'text',
+          'name' => 'details',
+          'tab' => $tab
+        ]);
+
     }
 
     /**

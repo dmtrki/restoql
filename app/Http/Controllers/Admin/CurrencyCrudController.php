@@ -39,13 +39,7 @@ class CurrencyCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-        CRUD::column('title');
-        CRUD::column('code');
-        CRUD::column('symbol');
-        CRUD::column('default');
-        CRUD::column('rate');
-        CRUD::column('after');
-        CRUD::column('deleted_at');
+        CRUD::setFromDb(); // columns
 
         /**
          * Columns can be defined using the fluent syntax or array syntax:
@@ -64,12 +58,7 @@ class CurrencyCrudController extends CrudController
     {
         CRUD::setValidation(CurrencyRequest::class);
 
-        CRUD::field('title');
-        CRUD::field('code');
-        CRUD::field('symbol');
-        CRUD::field('default');
-        CRUD::field('rate');
-        CRUD::field('after');
+        CRUD::setFromDb(); // fields
 
         /**
          * Fields can be defined using the fluent syntax or array syntax:

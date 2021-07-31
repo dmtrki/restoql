@@ -39,7 +39,7 @@ class AttributeCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-        
+        CRUD::setFromDb(); // columns
 
         /**
          * Columns can be defined using the fluent syntax or array syntax:
@@ -58,7 +58,7 @@ class AttributeCrudController extends CrudController
     {
         CRUD::setValidation(AttributeRequest::class);
 
-        
+        CRUD::setFromDb(); // fields
 
         /**
          * Fields can be defined using the fluent syntax or array syntax:

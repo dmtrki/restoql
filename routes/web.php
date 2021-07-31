@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/test', ['App\Http\Controllers\ServiceController','test']);
+Route::get('/import/cats', ['App\Http\Controllers\ServiceController','importCategories']);
+Route::get('/import/prods', ['App\Http\Controllers\ServiceController','importProducts']);
+Route::get('/import/curs', ['App\Http\Controllers\ServiceController','addCurrencies']);
+
+// Route::mediaLibrary();

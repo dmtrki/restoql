@@ -30,6 +30,20 @@ return [
 
     'disks' => [
 
+        'media' => [
+          'driver' => 'local',
+          'root' => '/var/www/restatic/media/',
+          'url' => env('FRONTEND_URL').'/media',
+          'visibility' => 'public',
+        ],
+
+        'import' => [
+          'driver' => 'local',
+          'root' => '/var/www/__imports/',
+          'visibility' => 'private',
+        ],
+
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app'),

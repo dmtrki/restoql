@@ -12,14 +12,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Filesystem\Filesystem;
 use Spatie\MediaLibrary\Models\Media;
-use App\Models\Category;
-use App\Models\Manufacturer;
-use App\Models\Currency;
+use App\Models\ProductCategory;
 use App\Models\Product;
-use App\Models\Attribute;
 use App\Models\SystemEvent;
 use Carbon\Carbon;
 use XML;
@@ -28,9 +26,9 @@ class ProcessImportCategories implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private $now;
-    private $todatFilename;
-    private $pathToToday;
+    protected $now;
+    protected $todayFileName;
+    protected $pathToToday;
 
     public function retryUntil()
     {
@@ -63,28 +61,28 @@ class ProcessImportCategories implements ShouldQueue
       $onlyChildren = [];
       foreach ($categoriesXml as $category) {
           if (empty($category->parent_id)) {
-            $external = [
+            $details = [
               'id' => "$category->id",
               'code' => "$category->code",
               'parent_id' => null
             ];
             $categories["$category->id"] = [
               'title' => "$category->name",
-              'external' => $external,
+              'details' => $details,
               'children' => []
             ];
           }
       }
       foreach ($categoriesXml as $category) {
         if (!empty($category->parent_id) && isset($categories["$category->parent_id"])) {
-          $external = [
+          $details = [
             'id' => "$category->id",
             'code' => "$category->code",
             'parent_id' => "$category->parent_id"
           ];
           $categories["$category->parent_id"]['children']["$category->id"] = [
             'title' => "$category->name",
-            'external' => $external,
+            'details' => $details,
             'children' => []
           ];
           $onlyChildren["$category->id"] = $category;
@@ -92,7 +90,7 @@ class ProcessImportCategories implements ShouldQueue
       }
       foreach ($onlyChildren as $category) {
         if (!empty($category->parent_id) && !isset($categories["$category->parent_id"])) {
-          $external = [
+          $details = [
             'id' => "$category->id",
             'code' => "$category->code",
             'parent_id' => "$category->parent_id"
@@ -101,7 +99,7 @@ class ProcessImportCategories implements ShouldQueue
           $root = $categories["$parent->parent_id"];
           $root['children']["$category->parent_id"]['children'] = [
             'title' => "$category->name",
-            'external' => $external,
+            'details' => $details,
             'children' => []
           ];
         }
@@ -128,12 +126,14 @@ class ProcessImportCategories implements ShouldQueue
       }
       
       foreach ($categoriesFormated as $item) {
-        if(!Category::where('title',$item['title'])->exists()){
-          $creating = Category::create($item)->makeHidden('thumbnail_url');
+        if(!ProductCategory::where('title',$item['title'])->exists()){
+          $creating = ProductCategory::create($item);
         }
       }
 
-      $tree = Category::get()->toTree();
+      Log::debug($categoriesFormated);
+
+      $tree = ProductCategory::get()->toTree();
     }
 
 }

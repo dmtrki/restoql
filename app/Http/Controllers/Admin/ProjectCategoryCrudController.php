@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\ProjectCategoryRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Gaspertrix\Backpack\DropzoneField\Traits\HandleAjaxMedia;
 
 /**
  * Class ProjectCategoryCrudController
@@ -18,8 +17,7 @@ class ProjectCategoryCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ReorderOperation;
-    use HandleAjaxMedia;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -29,11 +27,8 @@ class ProjectCategoryCrudController extends CrudController
     public function setup()
     {
         CRUD::setModel(\App\Models\ProjectCategory::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/project_category');
-        CRUD::setEntityNameStrings('Категория проектов', 'Категории проектов');
-        $this->crud->denyAccess('show');
-        $this->crud->addClause('orderBy', 'lft', 'asc');
-        $this->crud->enableReorder('title', 1);
+        CRUD::setRoute(config('backpack.base.route_prefix') . '/project-category');
+        CRUD::setEntityNameStrings('project category', 'project categories');
     }
 
     /**
@@ -44,21 +39,13 @@ class ProjectCategoryCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-      CRUD::column('title')
-            ->label('Название');
+        CRUD::setFromDb(); // columns
 
-      CRUD::addColumn(
-        [
-          'name' => 'icon', 
-          'type'  => 'model_function',
-          'function_name' => 'getIconUrl',
-          'label' => 'Иконка',
-          'limit' => 1024
-        ]
-      );
-
-      CRUD::column('slug')
-            ->label('URL');
+        /**
+         * Columns can be defined using the fluent syntax or array syntax:
+         * - CRUD::column('price')->type('number');
+         * - CRUD::addColumn(['name' => 'price', 'type' => 'number']); 
+         */
     }
 
     /**
@@ -71,14 +58,13 @@ class ProjectCategoryCrudController extends CrudController
     {
         CRUD::setValidation(ProjectCategoryRequest::class);
 
-        CRUD::field('title')
-              ->label('Название');
+        CRUD::setFromDb(); // fields
 
-        CRUD::field('slug')
-              ->label('URL');
-
-        
-
+        /**
+         * Fields can be defined using the fluent syntax or array syntax:
+         * - CRUD::field('price')->type('number');
+         * - CRUD::addField(['name' => 'price', 'type' => 'number'])); 
+         */
     }
 
     /**
@@ -90,18 +76,5 @@ class ProjectCategoryCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
-        CRUD::addField([
-          'label' => 'Иконка',
-          'type' => 'dropzone_media',
-          'name' => 'icon',
-          'collection' => 'icon',
-          'options' => [
-            'thumbnailHeight' => 55,
-            'maxFilesize' => 10,
-            'addRemoveLinks' => true,
-            'createImageThumbnails' => true,
-          ],
-          'crop' => [89,89]
-        ]);
     }
 }

@@ -28,11 +28,7 @@ class LeadCrudController extends CrudController
     {
         CRUD::setModel(\App\Models\Lead::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/lead');
-        CRUD::setEntityNameStrings('заявку', 'заявки');
-
-        $this->crud->denyAccess(['create','update']);
-        $this->crud->setTitle('Заявки с сайта');
-        $this->crud->setHeading('Заявки');
+        CRUD::setEntityNameStrings('lead', 'leads');
     }
 
     /**
@@ -43,43 +39,42 @@ class LeadCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-      $this->crud->denyAccess('create');
-      
-      CRUD::addColumn([
-          'name'      => 'row_number',
-          'type'      => 'row_number',
-          'label'     => '№',
-          'orderable' => false,
-      ])->makeFirstColumn();
+        CRUD::setFromDb(); // columns
 
-      CRUD::addColumn([
-        'name'        => 'status',
-        'label'       => 'Статус',
-        'type'        => 'radio',
-        'options'     => [
-            1 => 'Не обработана',
-            2 => 'Обработана'
-        ]
-      ])->afterColumn('row_number');
-
-      CRUD::addColumn([
-        'name'  => 'created_at', // The db column name
-        'label' => 'Время получения', // Table column heading
-        'type'  => 'datetime',
-      ]);
-
-      CRUD::addColumn([
-        'name'     => 'data->phone', // The db column name
-        'label'    => 'Телефон', // Table column heading
-        'type'     => 'phone',
-      ]);
-
-      CRUD::addColumn([
-        'name'  => 'data', // The db column name
-        'label' => 'Дополнительная информация', // Table column heading
-        'type'  => 'array'
-      ]);
+        /**
+         * Columns can be defined using the fluent syntax or array syntax:
+         * - CRUD::column('price')->type('number');
+         * - CRUD::addColumn(['name' => 'price', 'type' => 'number']); 
+         */
     }
 
+    /**
+     * Define what happens when the Create operation is loaded.
+     * 
+     * @see https://backpackforlaravel.com/docs/crud-operation-create
+     * @return void
+     */
+    protected function setupCreateOperation()
+    {
+        CRUD::setValidation(LeadRequest::class);
 
+        CRUD::setFromDb(); // fields
+
+        /**
+         * Fields can be defined using the fluent syntax or array syntax:
+         * - CRUD::field('price')->type('number');
+         * - CRUD::addField(['name' => 'price', 'type' => 'number'])); 
+         */
+    }
+
+    /**
+     * Define what happens when the Update operation is loaded.
+     * 
+     * @see https://backpackforlaravel.com/docs/crud-operation-update
+     * @return void
+     */
+    protected function setupUpdateOperation()
+    {
+        $this->setupCreateOperation();
+    }
 }
