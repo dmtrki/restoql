@@ -3,9 +3,15 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
+use Spatie\Tags\HasTags;
 use Dyrynda\Database\Casts\EfficientUuid;
 use Dyrynda\Database\Support\GeneratesUuid;
 use Spatie\MediaLibrary\HasMedia;
@@ -14,7 +20,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Product extends Model implements HasMedia
 {
-    use CrudTrait, HasSlug, GeneratesUuid, InteractsWithMedia;
+    use HasTags, SoftDeletes, CrudTrait, HasSlug, GeneratesUuid, InteractsWithMedia;
 
     /*
     |--------------------------------------------------------------------------
@@ -26,8 +32,8 @@ class Product extends Model implements HasMedia
     protected $fillable = [
         'uuid',
         'slug',
-        'category_uuid',
-        'manufacturer_uuid',
+        'category_id',
+        'manufacturer_id',
         'status_code',
         'title',
         'price',
@@ -38,8 +44,6 @@ class Product extends Model implements HasMedia
 
       protected $casts = [
         'uuid' => EfficientUuid::class,
-        'category_uuid' => EfficientUuid::class,
-        'manufacturer_uuid' => EfficientUuid::class,
         'details' => 'array',
         'attributes.pivot.product_uuid' => EfficientUuid::class,
         'attributes.pivot.attribute_uuid' => EfficientUuid::class,
@@ -50,6 +54,11 @@ class Product extends Model implements HasMedia
     | FUNCTIONS
     |--------------------------------------------------------------------------
     */
+
+    public static function getTagClassName(): string
+    {
+        return Tag::class;
+    }
 
     public function getSlugOptions() : SlugOptions
     {
@@ -81,19 +90,31 @@ class Product extends Model implements HasMedia
     |--------------------------------------------------------------------------
     */
 
-    public function category()
+    public function category(): BelongsTo
     {
-      return $this->belongsTo(\App\Models\ProductCategory::class, 'category_uuid')->select('id', 'uuid', 'title', 'slug');
+      return $this->belongsTo(ProductCategory::class, 'category_uuid', 'uuid')->select('id', 'uuid', 'title', 'slug');
     }
 
-    public function manufacturer()
+    public function manufacturer(): BelongsTo
     {
-      return $this->belongsTo(\App\Models\Manufacturer::class, 'manufacturer_uuid')->select('id', 'uuid', 'title', 'slug');
+      return $this->belongsTo(Manufacturer::class, 'manufacturer_uuid', 'uuid')->select('id', 'uuid', 'title', 'slug', 'country_code');
     }
 
-    public function attributes()
+    public function attributes(): BelongsToMany
     {
         return $this->belongsToMany(Attribute::class, 'product_attribute')->using(ProductAttribute::class)->withPivot('value');
+    }
+
+    public function discounts(): HasMany
+    {
+        return $this->hasMany(ProductDiscount::class, 'product_uuid', 'uuid');
+    }
+
+    public function tags(): MorphToMany
+    {
+        return $this
+            ->morphToMany(self::getTagClassName(), 'taggable', 'taggables', null, 'tag_id')
+            ->orderBy('order_column');
     }
 
     /*
@@ -101,6 +122,28 @@ class Product extends Model implements HasMedia
     | SCOPES
     |--------------------------------------------------------------------------
     */
+
+    public function scopeActive(Builder $query): Builder
+    {
+      return $query->where('status_code', 1);
+    }
+
+    public function scopeHidden(Builder $query): Builder
+    {
+      return $query->where('status_code', 2);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | METHODS
+    |--------------------------------------------------------------------------
+    */
+
+    public function getThumbUrl()
+    {
+      $media = \App\Models\Media::where('model_type', 'App\Models\Product')->where('collection_name', 'photos')->where('model_id',$this->id)->first();
+      return empty($media) ? '' : $media->getUrl();
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -117,6 +160,16 @@ class Product extends Model implements HasMedia
     public function getPriceFormattedAttribute()
     {
       return number_format((int) $this->price, 0, '', ' ') . ' ₽';
+    }
+
+    public function getDescriptionAttribute()
+    {
+      return $this->details['description'] ?? null;
+    }
+
+    public function getQuantityAttribute()
+    {
+      return $this->details['quantity'] ?? null;
     }
 
     /*

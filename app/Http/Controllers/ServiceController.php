@@ -20,329 +20,149 @@ use XML;
 
 class ServiceController extends Controller
 {
-    public function test()
-    {
-      $product = Product::whereNotNull('details')->inRandomOrder()->first();
-      
-    }
-    public function importProducts()
-    {
-      $importNodes = DB::table('import_nodes')->get();
+  protected $now;
+  protected $todayFileName;
+  protected $pathToToday;
 
-      foreach ($importNodes as $key => $node) {
-        $productData = json_decode($node->data);
+  public function retryUntil()
+  {
+      return now()->addMinutes(5);
+  }
 
-        if (!Product::where('title',(string) $productData->name)->exists()) {
-          $product = $this->addProduct($productData);
-        } else {
-          $product = Product::where('title',(string) $productData->name)
-                              ->whereDate('updated_at', '<', $this->now->format('Y-m-d'))
-                              ->first();
-        }
-        
-        DB::table('import_nodes')->where('id', $node->id)->delete();
-        if ($product === null) continue;
-        $isModifed = true;
-
-        //$this->addProductImage($product);
-        $this->addProductAttributes($product);
-        $product = $this->updateProductPrices($product, $productData);
-        $product->save();
-
-        dd($product->attributes);
-      }
-    }
-
-    public function addProduct($productData) 
-    {
-      $details = [
-        'id' => $productData->id,
-        'code' => $productData->code,
-        'parent_id' => $productData->parent_id,
-        'options' => $productData->options,
-      ];
-      
-      $category = ProductCategory::where('details->id', "$productData->parent_id")->select('uuid')->first();
-
-      if ($category === null) return null;
-      $categoryUuid = $category->uuid;
-
-      $manufacturer = Manufacturer::where('title', "$productData->proizvoditel")->select('uuid')->first();
-      if ($manufacturer === null){
-        $manufacturer = Manufacturer::create([
-          'title'    => "$productData->proizvoditel",
-          'country_code'  => "$productData->country"
-        ]);
-
-        $manufacturer = $manufacturer->fresh();
-      }      
-
-      $manufacturerUuid = $manufacturer ? $manufacturer->uuid : null;
-      
-      $details['quantity'] = (array) $productData->quantity;
-
-      $details['description'] =  (array) $productData->info;
+  /**
+   * Create a new job instance.
+   *
+   * @return void
+   */
+  public function __construct()
+  {
+    $this->now = Carbon::now();
+    $this->todayFileName = $this->now->format('d-m-y').'.xml';
+    $this->pathToToday =storage_path('app/'.$this->todayFileName);
+  }
 
 
-      $creatingData = [
-        'category_uuid' => $categoryUuid,
-        'manufacturer_uuid' => $manufacturerUuid,
-        'status_code' => 1,
-        'title'    => (string) $productData->name,
-        'price' => 0,
-        'rating' => 0,
-        'views' => 0,
-        'details' => $details,
-      ];
-
-      $product = Product::create($creatingData);
-
-      return $product;
-    }
-
-    public function addProductImage($product)
-    {
-      $eId = $product->details['id'];
-      $file = Storage::disk('import')->files('/image/'.$eId);
-      if (!empty($file)) {
-        $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), '/var/www/__imports/image/'.$file[0]);
-        $supportedTypes = ['image/png', 'image/x-png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/webp'];
-        if (!in_array($mime,$supportedTypes)) return;
-
-        $product
-          ->addMediaFromDisk($file[0], 'import')
-          ->preservingOriginal()
-          ->sanitizingFileName(function($fileName) {
-            return strtolower(str_replace(['#', '/', '\\', ' '], '-', $fileName));
-          })
-          ->toMediaCollection('photos');
-      }
-    }
-
-    public function addProductAttributes($product)
-    {
-      $options = $product->details['options'];
-      foreach ($options as $propKey => $prop) {
-        $formatedKey = Str::of($propKey)->replaceMatches('/[A-ZА-Я]/u', ' $0')->lower()->ltrim()->ucfirst();
-        $value = explode(' ', $prop);
-        $unit = $value[1] ?? null;
-        $value = $value[0] ?? null;
-        $slug = Str::slug($formatedKey, '-');
-
-        $attribute = Attribute::whereSlug($slug)->first();
-        if($attribute === null){
-          $attribute = Attribute::create([
-            'title' => $formatedKey,
-            'slug' => $slug,
-            'unit' => $unit
-          ]);
-        }
-        $product->attributes()->attach($attribute, ['value' => $value]);
-
-      }
-    }
-
-    public function updateProductPrices($product, $productData)
-    {
-      $rates = $this->getRates();
-      $currency = $productData->currency;
-
-      if ( $currency != 'руб.' && $currency != '' && $rates[$currency] && $productData->cost) {
-        $price = $rates[$currency] * (double) $productData->cost;
-      } else {
-        $price = (double) $productData->cost;
-      }
-
-      $product->price = $price;
-
-      return $product;
-    }
-
-
+  public function test()
+  {
+    // dd(Product::doesntHave('category')->count());
     
 
-    public function addCurrencies()
-    {
-        $xml = XML::import(storage_path('app/31-07-21.xml'))->get();
-        $productsXml = $xml->products;
-        foreach ($productsXml as $product) {
-            if(!empty($product->currency) && !Currency::where('title',"$product->currency")->exists()){
-                Currency::Create([
-                    'title'    => "$product->currency",
-                    'code' => '',
-                    'symbol' => '',
-                    'rate' => 1
-                ]);
-            }
-        }
-    }
+    dump(ProductCategory::select('uuid')->get()->pluck('uuid'));
+    
+    $importNodes = DB::table('import_nodes')->inRandomOrder()->limit(108)->get();
 
-    public function productImagesFiltered()
-    {
-      Product::doesntHave('media')->chunk(200, function($products) {
-        foreach ($products as $product) {
-          $eId = $product->details['id'];
-          $file = Storage::disk('import')->files('/image/'.$eId);
-          if (!empty($file)) {
-            $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), '/var/www/www-root/data/importing/'.$file[0]);
-            $supportedTypes = ['image/png', 'image/x-png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/webp'];
-            if (!in_array($mime,$supportedTypes)) continue;
+    foreach ($importNodes as $key => $node) {
+      $productData = json_decode($node->data);
 
-            $product
-              ->addMediaFromDisk($file[0], 'import')
-              ->preservingOriginal()
-              ->sanitizingFileName(function($fileName) {
-                return strtolower(str_replace(['#', '/', '\\', ' '], '-', $fileName));
-              })
-              ->toMediaCollection('main');
-          }
-        }
-      });
-    }
-
-    public function categoriesMinMax(Request $request)
-    {
-      $categories = ProductCategory::all();
-
-      foreach ($categories as $key => $category) {
-       
-
-        $maxPrice = DB::table('products')
-                      ->where('category_id', $category->id)                      
-                      ->where('price', '!=', 0)
-                      ->max('price');
-        $minPrice = DB::table('products')
-          ->where('category_id', $category->id)
-          ->where('price', '!=', 0)
-          ->min('price');
-        
-        
-        Redis::set('category_price_range:'.$category->id, $minPrice.'-'.$maxPrice);
-        var_dump(Redis::get('category_price_range:'.$category->id));
-        echo '<hr/>';
+      if (!Product::whereUuid((string) $productData->id)->exists()) {
+        $this->addProduct($productData);
+      } else {
+        print('<h2>Товар уже существует</h2>');
+        dump($productData);
       }
       
     }
 
-    public function generateThumbs(Request $request)
-    {
-      echo '<hr/>';
-      echo '<hr/>';
-      if ($request->cat) {
-        if ($request->cat == 'all') {
-          $categories = ProductCategory::all();
-        } else {
-          $categories = ProductCategory::where('id', (int)$request->cat)->get();
-        }
-
-        foreach ($categories as $key => $category) {
-          $category->regenerateThumbUrls();
-          echo '<b>'.$category->title . '</b><br/>'.Redis::get('category_thumb_url:'.$category->id).'<br><img src="'.Redis::get('category_thumb_url:'.$category->id).'" /><hr>';
-        }
-      }
-    }
-
-
-    public function getRates()
-    {
-      $cbRates = XML::import('http://www.cbr.ru/scripts/XML_daily.asp')->get();
-      $cbRates = $cbRates['Valute'];
-      $rates = [];
-      foreach ($cbRates as $key => $rate) {
-        if ($rate->CharCode == 'EUR') {
-          $rates['EUR'] = number_format(floatval(str_replace(",", ".", $rate->Value)), 2, '.', '');
-        }
-        if ($rate->CharCode == 'USD') {
-          $rates['USD'] = number_format(floatval(str_replace(",", ".", $rate->Value)), 2, '.', '');
-        }
-      }
-      return $rates;
-    }
-
-
-    public function importCategories()
-  {        
-      $now = Carbon::now();
-      $todayFileName = $now->format('d-m-y').'.xml';
-      $pathToToday =storage_path('app/'.$todayFileName);
-      $xml = XML::import($pathToToday)->get();
-      $categoriesXml = $xml->categories;
-      $categories = [];
-      $onlyChildren = [];
-      foreach ($categoriesXml as $category) {
-          if (empty($category->parent_id)) {
-            $details = [
-              'id' => "$category->id",
-              'code' => "$category->code",
-              'parent_id' => null
-            ];
-            $categories["$category->id"] = [
-              'title' => "$category->name",
-              'details' => $details,
-              'children' => []
-            ];
-          }
-      }
-      foreach ($categoriesXml as $category) {
-        if (!empty($category->parent_id) && isset($categories["$category->parent_id"])) {
-          $details = [
-            'id' => "$category->id",
-            'code' => "$category->code",
-            'parent_id' => "$category->parent_id"
-          ];
-          $categories["$category->parent_id"]['children']["$category->id"] = [
-            'title' => "$category->name",
-            'details' => $details,
-            'children' => []
-          ];
-          $onlyChildren["$category->id"] = $category;
-        }
-      }
-      foreach ($onlyChildren as $category) {
-        if (!empty($category->parent_id) && !isset($categories["$category->parent_id"])) {
-          $details = [
-            'id' => "$category->id",
-            'code' => "$category->code",
-            'parent_id' => "$category->parent_id"
-          ];
-          $parent = $onlyChildren["$category->parent_id"];
-          $root = $categories["$parent->parent_id"];
-          $root['children']["$category->parent_id"]['children'] = [
-            'title' => "$category->name",
-            'details' => $details,
-            'children' => []
-          ];
-        }
-      }
-      $categoriesFormated = [];
-
-      foreach ($categories as $key => $category) {
-        $categoriesFormated[] = $category;
-      }
-
-      foreach ($categoriesFormated as $key => $item) {
-        $children = [];
-        foreach ($item['children'] as $childKey => $child) {
-          $descenders = [];
-          if (!empty($child['children'])) {
-            foreach ($child['children'] as $downestKey => $downestChild) {
-              $descenders[] = $downestChild;
-            }                    
-          }
-          $child['children'] = $descenders;
-          $children[] = $child;
-        }
-        $categoriesFormated[$key]['children'] = $children;
-      }
-
-      foreach ($categoriesFormated as $item) {
-        if(!ProductCategory::where('title',$item['title'])->exists()){
-          $creating = ProductCategory::create($item);
-        }
-      }
-
-      $tree = ProductCategory::get()->toTree();
-
-      dd($tree);
+    dd(Product::all());
+    
   }
+
+
+  public function importProducts()
+  {
+    $importNodes = DB::table('import_nodes')->get();
+
+    foreach ($importNodes as $key => $node) {
+      $productData = json_decode($node->data);
+
+      if (!Product::whereUuid((string) $productData->id)->exists()) {
+        $this->addProduct($productData);
+      }
+      
+    }
+  }
+
+  public function addProduct($productData) 
+  {
+    $details = [
+      'external_id' => $productData->id,
+      'code' => $productData->code,
+      'parent_id' => $productData->parent_id,
+      'options' => $productData->options,
+      'price' => $productData->cost,
+      'currency' => $productData->currency,
+    ];
+    
+    $details['quantity'] = (array) $productData->quantity;
+
+    $details['description'] =  (array) $productData->info;
+
+    $creatingData = [
+      'uuid' => $productData->id,
+      // 'category_uuid' => $categoryUuid,
+      // 'manufacturer_uuid' => $manufacturerUuid,
+      'status_code' => 1,
+      'title'    => $productData->name,
+      'price' => 0,
+      'rating' => 0,
+      'views' => 0,
+      'details' => $details,
+    ];
+
+    $product = Product::create($creatingData);
+    $product = $product->fresh();
+
+    $category = ProductCategory::whereUuid($productData->parent_id)->select('uuid')->first();
+    if ($category === null) {      
+      print('<h2>Категория не найдена нахуй</h2>');
+      dump($details);
+      dump($productData->parent_id);
+      return null;
+    }
+    // $categoryUuid = $category->uuid;
+
+    $product->category()->associate($category);
+
+    $manufacturer = (
+                      !empty($productData->proizvoditel) 
+                      && is_string($productData->proizvoditel)
+                      && !empty($productData->country)
+                      && is_string($productData->country)
+                    ) 
+                    ? $this->addManufacturer($productData->proizvoditel, $productData->country)
+                    : false;
+
+    // $manufacturerUuid = ($manufacturer) ? $manufacturer->uuid : null;
+    if ($manufacturer && $manufacturer !== null) {
+      $product->manufacturer()->associate($manufacturer);
+    } else {
+      print('<h2>Производитель сука не найден ебать</h2>');
+      dump($details);
+      dump($productData->proizvoditel);
+      return null;
+    }
+
+    $product->save();
+
+    return $product;
+  }
+
+
+  public function addManufacturer($title, $country)
+  {
+    $manufacturer = Manufacturer::where('title', $title)->select('uuid')->first();
+
+    if ($manufacturer !== null) return $manufacturer;
+
+    $country = Country::where('title', $title)->select('code')->first();
+
+    $manufacturer = Manufacturer::create([
+      'title'    => $title,
+      'country_code'  => $country->code
+    ]);
+
+    return $manufacturer->fresh();
+  }
+
+   
 }

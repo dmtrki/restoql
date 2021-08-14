@@ -1,0 +1,150 @@
+extend type Query {
+# CATEGORIES
+  productCategories(
+    parent_id: Int @eq,
+    hasProducts: _ @whereHasConditions(columns: ["category_id", "manufacturer_id", "status_code"])
+    hasParent: _ @whereHasConditions(columns: ["parent_id"])
+    hasChildren: _ @whereHasConditions(columns: ["parent_id"])
+  ): [ProductCategory]! @all
+
+  productCategory(
+    slug: String @eq,
+    id: Int @eq,
+    uuid: UUID @eq
+  ): ProductCategory @find
+# /CATEGORIES
+  
+# MANUFACTURERS
+  manufacturers(
+    limit: Int @limit,
+    relatedCategory: String,
+    country_code: String @eq
+  ): [Manufacturer]! @all
+
+  manufacturer(
+    slug: String @eq,
+    uuid: UUID @eq
+  ): Manufacturer @find  
+
+  manufacturersCount: Int! @count(model: "Manufacturer")
+  manufacturersAbicaly: Mixed
+  manufacturersCountryly: Mixed
+# /MANUFACTURERS
+
+# PRODUCTS
+  products(
+    category_uuid: UUID @eq,
+    manufacturer_uuid: UUID @eq,
+    sorting: _ @orderBy(columnsEnum: "ProductSortingColumn"),
+    hasManufacturer: _ @whereHasConditions(columns: ["uuid", "country_code"])
+  ): [Product!]! @paginate(defaultCount: 12, scopes: ["active"])
+
+  productsLazy(
+    category_uuid: UUID @eq,
+    manufacturer_uuid: UUID @eq,
+    sorting: _ @orderBy(columnsEnum: "ProductSortingColumn")
+  ): [Product!]! @paginate(defaultCount: 12, type: SIMPLE, scopes: ["active"])
+
+  productsCount(
+    category_uuid: UUID @eq,
+    manufacturer_uuid: UUID @eq
+  ): Int! @count(model: "Product", scopes: ["active"])
+
+  product(uuid: UUID @eq): Product! @find(scopes: ["active"])
+# /PRODUCTS
+}
+
+type ProductCategory {
+    id: ID!
+    uuid: UUID!
+    slug: String!
+    title: String!
+    details: [Mixed]
+    parent_id: Int
+    "Methods"
+    thumb: String
+    "Relations"
+    parent: ProductCategory
+    children: [ProductCategory]
+    attributes: [Attribute]
+    picture: Media @morphTo
+    products_count: Int @count(relation: "products")
+    children_count: Int @count(relation: "children")
+}
+
+type Manufacturer {
+    id: Int!
+    uuid: UUID!
+    slug: String!
+    title: String!
+    country_code: String
+    description: String
+    details: JSON
+    "Methods"
+    thumb: String
+    "Relations"
+    logo: Media
+    country: Country
+    products: [Product]! @hasMany(relation: "products")
+    products_count: Int @count(relation: "products")
+}
+
+type Attribute {
+    id: ID!
+    uuid: UUID!
+    slug: String!
+    title: String!
+    attribute_group_id: Int
+    value: String
+    values: Mixed
+}
+
+type ProductAttribute {
+    attribute: Attribute! @belongsTo
+    value: String
+}
+
+type Product {
+    id: ID!
+    uuid: UUID!
+    slug: String!
+    category_id: Int
+    manufacturer_id: Int
+    status_code: ProductStatus
+    title: String!
+    price: String
+    price_formatted: String
+    rating: String
+    views: Int
+    details: Mixed
+    description: [String]
+    created_at: DateTime
+    updated_at: DateTime
+    # Methods
+    thumb: String @method(name: "getThumbUrl")
+    #  Relations
+    photos: [Media] @morphMany(relation: "media")
+    category: ProductCategory! @belongsTo
+    manufacturer: Manufacturer @belongsTo(relation: "manufacturer")
+    tags: [Tag] @morphMany
+    attributes: [ProductAttribute] @belongsToMany
+}
+
+enum ProductSortingColumn {
+  VIEWS @enum(value: "views")
+  PRICE @enum(value: "price")
+}
+
+enum ProductStatus {
+  ACTIVE @enum(value: 1)
+  HIDDEN @enum(value: 2)
+}
+
+type Country {  
+  id: Int
+  slug: String!
+  title: String!
+  code: String
+  order: Int
+  manufacturers: [Manufacturer]!
+}

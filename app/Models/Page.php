@@ -6,6 +6,7 @@ use Backpack\PageManager\app\Models\Page as BasePage;
 
 class Page extends BasePage
 {
+  
 
     /*
     |--------------------------------------------------------------------------

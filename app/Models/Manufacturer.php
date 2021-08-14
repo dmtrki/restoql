@@ -24,6 +24,7 @@ class Manufacturer extends Model implements HasMedia
     public $timestamps = false;
 
     protected $fillable = [
+        'id',
         'uuid',
         'slug',
         'title',
@@ -62,6 +63,8 @@ class Manufacturer extends Model implements HasMedia
               });
     }
 
+    // Backpack only functions >>>
+
     public function backpackGetLogoUrl()
     {
       $media = \App\Models\Media::where('model_type', 'App\Models\Manufacturer')->where('collection_name', 'logo')->where('model_id',$this->id)->first();
@@ -75,11 +78,34 @@ class Manufacturer extends Model implements HasMedia
     |--------------------------------------------------------------------------
     */
 
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class, 'code', 'country_code');
+    }
+
+
     /*
     |--------------------------------------------------------------------------
     | SCOPES
     |--------------------------------------------------------------------------
     */
+
+    public function scopeAbicaly($query)
+    {
+        return $query->orderBy('title')->get()->groupBy(function($item) { 
+                                            return mb_substr($item->name, 0, 1); 
+                                        });
+    }
+
+    public function scopeCountryly($query)
+    {
+        return $query->orderBy('title')->get()->groupBy('country_code');
+    }
 
     /*
     |--------------------------------------------------------------------------

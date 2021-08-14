@@ -1,5 +1,23 @@
 # restoreca gql api
 
+- [ ] Схему доделать
+  - [ ] создать все нужные типы
+  - [ ] создать мутации добавления в корзину, создания лида, заказа
+
+## any
+- https://github.com/tlaverdure/laravel-echo-server
+- https://github.com/jenssegers/agent
+- https://github.com/adelf/acwa_book_ru/
+- https://phpbench.readthedocs.io/en/latest/
+- https://www.mywebtuts.com/blog/laravel-image-text-watermarking-tutorial
+- https://github.com/izica/relations-widgets-for-backpack#installation
+- https://spatie.be/docs/laravel-tags/v4/installation-and-setup
+- https://github.com/daniel-de-wit/lighthouse-sanctum
+
+- https://laravelexamples.com/
+- https://www.youtube.com/watch?v=zmyDq3JbfpU
+- https://www.youtube.com/watch?v=rZvxRQmnw18
+
 
 ## установленные пакеты
 -  https://backpackforlaravel.com/docs/4.1/
@@ -15,7 +33,7 @@
 ### laravel-efficient-uuid
 ```php
 $table->efficientUuid('uuid')->index();
-```
+``2
 ---
 ```php
   protected $casts = [

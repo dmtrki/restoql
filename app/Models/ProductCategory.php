@@ -89,7 +89,7 @@ class ProductCategory extends Model
     */
     public function products()
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(Product::class, 'category_uuid', 'uuid');
     }
 
     public function attributeGroups()
@@ -97,10 +97,16 @@ class ProductCategory extends Model
         return $this->belongsToMany(AttributeGroup::class);
     }
 
+    public function attributes()
+    {
+        return $this->belongsToMany(Attribute::class, 'product_category_attributes', 'product_category_uuid', 'attribute_uuid')->using(ProductCategoryAttribute::class)->withPivot('values');
+    }
+
     public function manufacturers()
     {
         return $this->hasManyThrough(Manufacturer::class, Product::class);
     }
+    
     /*
     |--------------------------------------------------------------------------
     | SCOPES

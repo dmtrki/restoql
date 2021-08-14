@@ -166,6 +166,7 @@ return [
          * Package Service Providers...
          */
         Dyrynda\Database\LaravelEfficientUuidServiceProvider::class,
+        \Nuwave\Lighthouse\WhereConditions\WhereConditionsServiceProvider::class,
 
         /*
          * Application Service Providers...

@@ -4,9 +4,16 @@ scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 "A datetime string with format `Y-m-d H:i:s`, e.g. `2018-05-23 13:43:32`."
 scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
 
+scalar Mixed @scalar(class: "MLL\\GraphQLScalars\\MixedScalar")
+
+scalar UUID @scalar(class: "App\\GraphQL\\Scalars\\EfficientUuid")
+
+# scalar JSON @scalar(class: "MLL\\GraphQLScalars\\JSON")
+
 type Query {
-  users: [User!]! @paginate(defaultCount: 10)
-  user(id: ID @eq): User @find
+  page(slug: String @eq): Page @find
+  pages: [Page!]! @all
+  media: [Media!]! @all
 }
 
 type User {
@@ -17,6 +24,24 @@ type User {
   updated_at: DateTime!
 }
 
-type ProductCategory {
-    
+type Page {
+  id: ID!
+  title: String!
+  slug: String!
+  extras: Mixed
 }
+
+type Media {
+    id: Int!
+    uuid: String!
+    name: String!
+    fileName: String! @rename(attribute: "file_name")
+    path: String!
+    url(conversion: String): String @method(name: "getUrl")
+    properties: Mixed
+    type: String!
+    createdAt: DateTime! @rename(attribute: "created_at")
+    updatedAt: DateTime @rename(attribute: "updated_at")
+}
+
+#import catalog.graphql

@@ -21,7 +21,7 @@ class CreateProductsTable extends Migration
 			$table->efficientUuid('manufacturer_uuid')->nullable();
 			$table->tinyInteger('status_code')->default('1');
 			$table->string('title', 255);
-			$table->decimal('price', 8,2)->nullable();
+			$table->decimal('price', 10,2)->nullable();
 			$table->decimal('rating', 2,2)->nullable();
 			$table->bigInteger('views')->default('0');
 			$table->json('details')->nullable();

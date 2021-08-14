@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Model;
+use Spatie\Tags\Tag as TagBase;
 
-class Currency extends Model
+class Tag extends TagBase
 {
     use CrudTrait;
 
@@ -15,16 +15,16 @@ class Currency extends Model
     |--------------------------------------------------------------------------
     */
 
-    protected $table = 'currencies';
+    protected $table = 'tags';
     // protected $primaryKey = 'id';
     // public $timestamps = false;
 
     protected $fillable = [
         'id',
-        'code',
-        'title',
-        'rate',
-        'is_default',
+        'name',
+        'slug',
+        'type',
+        'order_column'
     ];
     // protected $hidden = [];
     // protected $dates = [];

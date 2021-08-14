@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateImportNodesTable extends Migration
+class CreateProductCategoryAttributesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,10 @@ class CreateImportNodesTable extends Migration
      */
     public function up()
     {
-        Schema::create('import_nodes', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('uuid');
-            $table->json('data');
-            $table->timestamps();
+        Schema::create('product_category_attributes', function (Blueprint $table) {
+            $table->efficientUuid('product_category_uuid');
+            $table->efficientUuid('attribute_uuid');
+            $table->json('values')->nullable();
         });
     }
 
@@ -28,6 +27,6 @@ class CreateImportNodesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('import_nodes');
+        Schema::dropIfExists('product_category_attributes');
     }
 }

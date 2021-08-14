@@ -20,7 +20,7 @@ class GenerateCategoryMetas implements ShouldQueue
      */
     public function __construct()
     {
-        //
+      $this->onQueue('import');
     }
 
     /**

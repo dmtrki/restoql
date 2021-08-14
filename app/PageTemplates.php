@@ -94,7 +94,7 @@ trait PageTemplates
               'label'                => 'Конечный цвет фона',
               'name'                 => 'bg_finish',
               'type'                 => 'color_picker',
-              'default'              => '#000000',
+              'default'              => '#ffffff',
             ]
           ],
           'fake' => true,

@@ -27,10 +27,10 @@ class ProductAttribute extends Pivot
 
 
     public function product() {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_uuid', 'uuid');
     }
 
     public function attribute() {
-        return $this->belongsTo(Attribute::class);
+        return $this->belongsTo(Attribute::class, 'attribute_uuid', 'uuid');
     }
 }
