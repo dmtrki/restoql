@@ -33,21 +33,22 @@ extend type Query {
 
 # PRODUCTS
   products(
-    category_uuid: UUID @eq,
-    manufacturer_uuid: UUID @eq,
+    category_id: Int @eq,
+    manufacturer_id: Int @eq,
+    uuids: [UUID] @in(key: "uuid"),
     sorting: _ @orderBy(columnsEnum: "ProductSortingColumn"),
-    hasManufacturer: _ @whereHasConditions(columns: ["uuid", "country_code"])
+    hasManufacturer: _ @whereHasConditions(columns: ["country_code"])
   ): [Product!]! @paginate(defaultCount: 12, scopes: ["active"])
 
   productsLazy(
-    category_uuid: UUID @eq,
-    manufacturer_uuid: UUID @eq,
+    category_id: Int @eq,
+    manufacturer_id: Int @eq,
     sorting: _ @orderBy(columnsEnum: "ProductSortingColumn")
   ): [Product!]! @paginate(defaultCount: 12, type: SIMPLE, scopes: ["active"])
 
   productsCount(
-    category_uuid: UUID @eq,
-    manufacturer_uuid: UUID @eq
+    category_id: Int @eq,
+    manufacturer_id: Int @eq
   ): Int! @count(model: "Product", scopes: ["active"])
 
   product(uuid: UUID @eq): Product! @find(scopes: ["active"])
@@ -55,7 +56,7 @@ extend type Query {
 }
 
 type ProductCategory {
-    id: ID!
+    id: Int!
     uuid: UUID!
     slug: String!
     title: String!
@@ -97,10 +98,10 @@ type Attribute {
     attribute_group_id: Int
     value: String
     values: Mixed
+    pivot: ProductAttribute
 }
 
 type ProductAttribute {
-    attribute: Attribute! @belongsTo
     value: String
 }
 
@@ -117,17 +118,21 @@ type Product {
     rating: String
     views: Int
     details: Mixed
-    description: [String]
+    description: String
+    description_cutted: String
     created_at: DateTime
     updated_at: DateTime
     # Methods
-    thumb: String @method(name: "getThumbUrl")
+    thumbnail: String @with(relation: "media") @method(name: "getThumbnailUrl")
+    thumb: String @with(relation: "media") @method(name: "getThumbUrl")
+    thumb_with_dimensions: Mixed @with(relation: "media") @method(name: "getThumb")
+    attributes_list: Mixed @with(relation: "productAttributes") @method(name: "getAttributesList")
     #  Relations
     photos: [Media] @morphMany(relation: "media")
     category: ProductCategory! @belongsTo
     manufacturer: Manufacturer @belongsTo(relation: "manufacturer")
     tags: [Tag] @morphMany
-    attributes: [ProductAttribute] @belongsToMany
+    attributes: [Attribute] @belongsToMany
 }
 
 enum ProductSortingColumn {

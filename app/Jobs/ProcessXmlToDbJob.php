@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use App\Models\SystemEvent;
+use App\Models\Currency;
 use Carbon\Carbon;
 use XML;
 
@@ -29,7 +30,7 @@ class ProcessXmlToDbJob implements ShouldQueue
      */
     public function retryUntil()
     {
-        // return now()->addMinutes(3);
+        return now()->addMinutes(5);
     }
 
     /**
@@ -42,6 +43,7 @@ class ProcessXmlToDbJob implements ShouldQueue
       $this->onQueue('import');
       $this->now = Carbon::now();
       $this->todayFileName = $this->now->format('d-m-y').'.xml';
+      // $this->todayFileName = '10-08-21.xml';
       $this->pathToToday =storage_path('app/'.$this->todayFileName);
     }
 
@@ -52,6 +54,8 @@ class ProcessXmlToDbJob implements ShouldQueue
      */
     public function handle()
     {
+      $this->addCurrencies();
+
       $processingEvent = SystemEvent::select('id')
                         ->where('type_code', 100)
                         ->where('status_code', 1)

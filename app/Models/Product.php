@@ -1,14 +1,15 @@
 <?php
 
 namespace App\Models;
-
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 use Spatie\Tags\HasTags;
@@ -92,15 +93,20 @@ class Product extends Model implements HasMedia
 
     public function category(): BelongsTo
     {
-      return $this->belongsTo(ProductCategory::class, 'category_uuid', 'uuid')->select('id', 'uuid', 'title', 'slug');
+      return $this->belongsTo(ProductCategory::class)->select('id', 'uuid', 'title', 'slug');
     }
 
     public function manufacturer(): BelongsTo
     {
-      return $this->belongsTo(Manufacturer::class, 'manufacturer_uuid', 'uuid')->select('id', 'uuid', 'title', 'slug', 'country_code');
+      return $this->belongsTo(Manufacturer::class)->select('id', 'uuid', 'title', 'slug', 'country_code');
     }
 
     public function attributes(): BelongsToMany
+    {
+        return $this->belongsToMany(Attribute::class, 'product_attribute')->using(ProductAttribute::class)->withPivot('value');
+    }
+
+    public function productAttributes(): BelongsToMany
     {
         return $this->belongsToMany(Attribute::class, 'product_attribute')->using(ProductAttribute::class)->withPivot('value');
     }
@@ -116,6 +122,7 @@ class Product extends Model implements HasMedia
             ->morphToMany(self::getTagClassName(), 'taggable', 'taggables', null, 'tag_id')
             ->orderBy('order_column');
     }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -139,10 +146,37 @@ class Product extends Model implements HasMedia
     |--------------------------------------------------------------------------
     */
 
+    public function getThumbnailUrl()
+    {
+      $media = \App\Models\Media::where('model_type', 'App\Models\Product')->where('collection_name', 'photos')->where('model_id',$this->id)->first();
+      return empty($media) ? '' : $media->getUrl('thumbnail');
+    }
+
     public function getThumbUrl()
     {
       $media = \App\Models\Media::where('model_type', 'App\Models\Product')->where('collection_name', 'photos')->where('model_id',$this->id)->first();
-      return empty($media) ? '' : $media->getUrl();
+      return empty($media) ? '' : $media->getUrl('small');
+    }
+
+    public function getThumb()
+    {
+      $media = \App\Models\Media::where('model_type', 'App\Models\Product')->where('collection_name', 'photos')->where('model_id',$this->id)->first();
+      return empty($media) ? '' : ['url' => $media->getUrl('small'), 'dimensions' => $media->dimensions];
+    }
+
+    public function getAttributesList()
+    {
+      $output = [];
+      foreach ($this->productAttributes as $attr) {
+        if ($attr->pivot->value == '') continue;
+        $output[] = [
+          'text' => $attr->title,
+          'value' => $attr->pivot->value,
+          'unit' => $attr->unit,
+          'id' => $attr->id
+        ];
+      }
+      return $output;
     }
 
     /*
@@ -151,12 +185,6 @@ class Product extends Model implements HasMedia
     |--------------------------------------------------------------------------
     */
 
-    public function getPhotoUrlAttribute()
-    {
-      $media = \App\Models\Media::where('model_type', 'App\Models\Product')->where('collection_name', 'photos')->where('model_id',$this->id)->first();
-      return empty($media) ? '' : $media->getUrl();
-    }
-
     public function getPriceFormattedAttribute()
     {
       return number_format((int) $this->price, 0, '', ' ') . ' ₽';
@@ -164,7 +192,16 @@ class Product extends Model implements HasMedia
 
     public function getDescriptionAttribute()
     {
-      return $this->details['description'] ?? null;
+      if (!$this->details['description']) return null;
+
+      return (is_array($this->details['description'])) 
+             ? $this->details['description'][0] 
+             : $this->details['description'];
+    }
+
+    public function getDescriptionCuttedAttribute()
+    {
+      return ($this->description !== null) ? Str::words($this->description, 8, '...') : null;
     }
 
     public function getQuantityAttribute()

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 use App\Models\ProductCategory;
+use App\Models\ProductAttribute;
 use App\Models\Manufacturer;
 use App\Models\Currency;
 use App\Models\Product;
@@ -51,11 +52,10 @@ class ImportProductAttributesJob implements ShouldQueue
      */
     public function handle()
     {
-        Product::select('id', 'uuid', 'category_uuid', 'details')
+        Product::select('id', 'uuid', 'category_id', 'details')
         ->whereNotNull('details')
         ->chunk(200, function($products) {
             foreach ($products as $product) {
-                // \Log::info('Добавление аттрибутов для '.$product->id);
                 $this->addProductAttributes($product);
             }
         });
@@ -73,9 +73,18 @@ class ImportProductAttributesJob implements ShouldQueue
         // \Log::info('Из таблицы импорта получен аттрибут '.$formatedKey);
         
         $attribute = $this->addAttribute($formatedKey, $value, $unit);
+        if (
+          !ProductAttribute::where('product_id', $product->id)
+          ->where('attribute_id', $attribute->id)
+          ->first() !== null
+        ) $product->attributes()
+          ->attach($attribute, [
+            'value' => $value, 
+            'product_uuid' => $product->uuid, 
+            'attribute_uuid' => $attribute->uuid
+          ]);
         
-        $product->attributes()->attach($attribute, ['value' => $value, 'product_uuid' => $product->uuid, 'attribute_uuid' => $attribute->uuid]);
-        $this->addAttributeValueToProductCategory($product->category_uuid, $attribute->uuid, $value);
+        $this->addAttributeValueToProductCategory($product->category_id, $attribute->uuid, $value);
       }
     }
 
@@ -94,24 +103,29 @@ class ImportProductAttributesJob implements ShouldQueue
 
       return $attribute->fresh();
     }
-
-    public function addAttributeValueToProductCategory($categoryUuid, $attributeUuid, $value)
+    
+    public function addAttributeValueToProductCategory($categoryId, $attributeUuid, $value)
     {
+
+      $category = ProductCategory::select('uuid', 'title')->where('id', $categoryId)->first();
+      if ($category === null) return;
+  
       $categoryAttribute = DB::table('product_category_attributes')
                           ->select('values')
-                          ->where('product_category_uuid', $categoryUuid)
+                          ->where('product_category_uuid', $category->uuid)
                           ->where('attribute_uuid', $attributeUuid)
                           ->first();
-
+  
       $values = ($categoryAttribute !== null && $categoryAttribute->values !== null) ? json_decode($categoryAttribute->values) : [];
       if (is_array($values) && !in_array($value, $values)) $values[] = $value;
-
+  
       DB::table('product_category_attributes')
       ->updateOrInsert([
-        'product_category_uuid' => Uuid::fromString(strtolower($categoryUuid))->getBytes(),
+        'product_category_uuid' => Uuid::fromString(strtolower($category->uuid))->getBytes(),
         'attribute_uuid' => Uuid::fromString(strtolower($attributeUuid))->getBytes(),
       ],[
         'values' => json_encode($values)
       ]);
     }
+    
 }

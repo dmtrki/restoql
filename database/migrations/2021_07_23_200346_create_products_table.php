@@ -17,8 +17,10 @@ class CreateProductsTable extends Migration
             $table->id();
             $table->efficientUuid('uuid')->index();
 			$table->string('slug')->unique()->index();
-			$table->efficientUuid('category_uuid')->nullable()->index();
-			$table->efficientUuid('manufacturer_uuid')->nullable();
+			// $table->efficientUuid('category_uuid')->nullable()->index();
+			// $table->efficientUuid('manufacturer_uuid')->nullable();
+            $table->unsignedBigInteger('product_category_id')->nullable()->index();
+			$table->unsignedBigInteger('manufacturer_id')->nullable();
 			$table->tinyInteger('status_code')->default('1');
 			$table->string('title', 255);
 			$table->decimal('price', 10,2)->nullable();

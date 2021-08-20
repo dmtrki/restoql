@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c6babd8b73db0cd5f79074ee65d29689",
+    "content-hash": "360e49aa01b7baacbb56a6981f12cab4",
     "packages": [
         {
             "name": "acfbentveld/xml",
@@ -2165,6 +2165,67 @@
                 "source": "https://github.com/lazychaser/laravel-nestedset/tree/v6.0.0"
             },
             "time": "2021-05-28T07:08:55+00:00"
+        },
+        {
+            "name": "label84/laravel-logviewer",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Label84/laravel-logviewer.git",
+                "reference": "f104318fb84578c5d9288e418812863841dfe2e3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Label84/laravel-logviewer/zipball/f104318fb84578c5d9288e418812863841dfe2e3",
+                "reference": "f104318fb84578c5d9288e418812863841dfe2e3",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/auth": "^8.0",
+                "illuminate/database": "^8.0",
+                "illuminate/routing": "^8.0",
+                "illuminate/support": "^8.0",
+                "php": "^7.4 || ^8.0"
+            },
+            "require-dev": {
+                "league/factory-muffin": "^3.3",
+                "league/factory-muffin-faker": "^2.3",
+                "nunomaduro/larastan": "^0.7.12",
+                "orchestra/testbench": "^6.0",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Label84\\LogViewer\\LogViewerServiceProvider"
+                    ],
+                    "aliases": {
+                        "LogViewer": "Label84\\LogViewer\\Facades\\LogViewer"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Label84\\LogViewer\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Label84",
+                    "email": "info@label84.com"
+                }
+            ],
+            "description": "A log viewer package.",
+            "support": {
+                "issues": "https://github.com/Label84/laravel-logviewer/issues",
+                "source": "https://github.com/Label84/laravel-logviewer/tree/v2.0.0"
+            },
+            "time": "2021-08-15T18:05:39+00:00"
         },
         {
             "name": "laragraph/utils",

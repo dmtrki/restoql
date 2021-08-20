@@ -28,6 +28,7 @@
 - https://github.com/spatie/laravel-medialibrary
 - https://github.com/laravel/telescope
 - https://github.com/spatie/laravel-ray
+- https://github.com/Label84/laravel-logviewer
 
 
 ### laravel-efficient-uuid

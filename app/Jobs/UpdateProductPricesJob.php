@@ -54,6 +54,8 @@ class UpdateProductPricesJob implements ShouldQueue
         $importNodes = DB::table('import_nodes')->get();
         $rates = $this->getRates();
 
+        // logger(json_encode($rates));
+
         foreach ($importNodes as $key => $node) {
 
             $productData = json_decode($node->data, true);
