@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Kalnoy\Nestedset\NestedSet;
 
-class CreatePagesTable extends Migration
+class CreateMenuItemsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -14,21 +14,14 @@ class CreatePagesTable extends Migration
      */
     public function up()
     {
-        // TODO: use JSON data type for 'extras' instead of string
-        Schema::create('pages', function (Blueprint $table) {
+        Schema::create('menu_items', function (Blueprint $table) {
           $table->id();
-          $table->unsignedBigInteger('site_id')->nullable();
-          $table->string('template');
-          $table->string('name');
-          $table->string('title');
+          $table->unsignedBigInteger('menu_id');
           $table->string('slug');
+          $table->string('title');
           $table->string('url');
-          $table->text('content')->nullable();
-          $table->json('extras')->nullable();
-          $table->json('blocks')->nullable();
           NestedSet::columns($table);
           $table->timestamps();
-          $table->softDeletes();
         });
     }
 
@@ -39,6 +32,6 @@ class CreatePagesTable extends Migration
      */
     public function down()
     {
-        Schema::drop('pages');
+        Schema::dropIfExists('menu_items');
     }
 }

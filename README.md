@@ -13,13 +13,15 @@
 - https://github.com/izica/relations-widgets-for-backpack#installation
 - https://spatie.be/docs/laravel-tags/v4/installation-and-setup
 - https://github.com/daniel-de-wit/lighthouse-sanctum
-
+- https://github.com/Developmint/nuxt-purgecss
 - https://laravelexamples.com/
 - https://www.youtube.com/watch?v=zmyDq3JbfpU
 - https://www.youtube.com/watch?v=rZvxRQmnw18
+- https://vform.vercel.app/
 
 
 ## установленные пакеты
+- composer require --dev barryvdh/laravel-ide-helper
 -  https://backpackforlaravel.com/docs/4.1/
 - https://github.com/spatie/laravel-sluggable
 - https://github.com/michaeldyrynda/laravel-efficient-uuid
@@ -29,6 +31,7 @@
 - https://github.com/laravel/telescope
 - https://github.com/spatie/laravel-ray
 - https://github.com/Label84/laravel-logviewer
+- https://github.com/bepsvpt/blurhash
 
 
 ### laravel-efficient-uuid

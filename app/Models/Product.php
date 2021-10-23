@@ -135,9 +135,26 @@ class Product extends Model implements HasMedia
       return $query->where('status_code', 1);
     }
 
+    /**
+     * Select only hidden products
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+    */
     public function scopeHidden(Builder $query): Builder
     {
       return $query->where('status_code', 2);
+    }
+
+    /**
+     * Shuffles the products randomly
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+    */
+    public function scopeRandom($query)
+    {
+      return $query->inRandomOrder();
     }
 
     /*

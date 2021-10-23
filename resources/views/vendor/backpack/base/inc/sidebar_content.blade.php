@@ -63,4 +63,3 @@
 <li class="nav-item"><a class="nav-link" href="{{ backpack_url('permission') }}"><i class="nav-icon la la-key"></i> <span>Полномочия</span></a></li>
 @endif
 <li class='nav-item'><a class='nav-link' href="{{ backpack_url('systemevents') }}"><i class='nav-icon la la-question'></i> Журнал системы</a></li>
-<li class='nav-item'><a class='nav-link' href='{{ backpack_url('tag') }}'><i class='nav-icon la la-question'></i> Tags</a></li>

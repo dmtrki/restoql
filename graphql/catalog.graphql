@@ -37,14 +37,26 @@ extend type Query {
     manufacturer_id: Int @eq,
     uuids: [UUID] @in(key: "uuid"),
     sorting: _ @orderBy(columnsEnum: "ProductSortingColumn"),
+    random: Boolean @scope(name: "random"),
     hasManufacturer: _ @whereHasConditions(columns: ["country_code"])
   ): [Product!]! @paginate(defaultCount: 12, scopes: ["active"])
 
   productsLazy(
     category_id: Int @eq,
     manufacturer_id: Int @eq,
-    sorting: _ @orderBy(columnsEnum: "ProductSortingColumn")
+    uuids: [UUID] @in(key: "uuid"),
+    sorting: _ @orderBy(columnsEnum: "ProductSortingColumn"),
+    random: Boolean @scope(name: "random")
   ): [Product!]! @paginate(defaultCount: 12, type: SIMPLE, scopes: ["active"])
+
+  productsAll(
+    limit: Int @limit,
+    category_id: Int @eq,
+    manufacturer_id: Int @eq,
+    uuids: [UUID] @in(key: "uuid"),
+    sorting: _ @orderBy(columnsEnum: "ProductSortingColumn"),
+    random: Boolean @scope(name: "random")
+  ): [Product!]! @all(scopes: ["active"])
 
   productsCount(
     category_id: Int @eq,
