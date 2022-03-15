@@ -60,12 +60,12 @@ class UpdateProductPricesJob implements ShouldQueue
 
             $productData = json_decode($node->data, true);
             $product = Product::select('id', 'uuid', 'price')->whereUuid($productData['id'])->first();
-            
+
             if ($product) {
               $currency = (is_array($productData['currency'])) ? array_shift($productData['currency']) : $productData['currency'];
               if ($currency == '') $currency = 'RUB';
               $currency = Currency::where('title', $currency)->orWhere('code', $currency)->first();
-            
+
               $price = null;
               $cost = number_format((float) $productData['cost'], 2, '.', '');
 
@@ -101,7 +101,7 @@ class UpdateProductPricesJob implements ShouldQueue
 
             }
         }
-        
+
 
     }
 

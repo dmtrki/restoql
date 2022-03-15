@@ -22,30 +22,12 @@ use App\Models\SystemEvent;
 use Carbon\Carbon;
 use XML;
 
-class ImportProductCategoriesJob implements ShouldQueue
+class ImportProductCategoriesJob extends ImportBaseJob
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $now;
-    protected $todayFileName;
-    protected $pathToToday;
-
-    public function retryUntil()
+    public function retryUntil(): \Illuminate\Support\Carbon
     {
         return now()->addMinutes(5);
-    }
-
-    /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-      $this->onQueue('import');
-      $this->now = Carbon::now();
-      $this->todayFileName = $this->now->format('d-m-y').'.xml';
-      $this->pathToToday =storage_path('app/'.$this->todayFileName);
     }
 
     /**
@@ -55,7 +37,7 @@ class ImportProductCategoriesJob implements ShouldQueue
      */
     public function handle()
     {
-      $xml = XML::import($this->pathToToday)->get();
+      $xml = $this->getXmlFileContent();
       $categoriesXml = $xml->categories;
       $categories = [];
       $categoriesFlat = [];
@@ -80,7 +62,9 @@ class ImportProductCategoriesJob implements ShouldQueue
 
         $categoriesFlat["$category->id"] = $data;
 
-        if ($parent_id === null) $categoriesRoot["$category->id"] = $data;
+        if ($parent_id === null) {
+          $categoriesRoot["$category->id"] = $data;
+        }
       }
 
       foreach ($categoriesFlat as $uuid => $category) {

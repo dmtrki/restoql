@@ -1,5 +1,5 @@
 extend type Query {
-# CATEGORIES
+  # CATEGORIES
   productCategories(
     parent_id: Int @eq,
     hasProducts: _ @whereHasConditions(columns: ["category_id", "manufacturer_id", "status_code"])
@@ -12,9 +12,9 @@ extend type Query {
     id: Int @eq,
     uuid: UUID @eq
   ): ProductCategory @find
-# /CATEGORIES
-  
-# MANUFACTURERS
+  # /CATEGORIES
+
+  # MANUFACTURERS
   manufacturers(
     limit: Int @limit,
     relatedCategory: String,
@@ -24,14 +24,14 @@ extend type Query {
   manufacturer(
     slug: String @eq,
     uuid: UUID @eq
-  ): Manufacturer @find  
+  ): Manufacturer @find
 
   manufacturersCount: Int! @count(model: "Manufacturer")
-  manufacturersAbicaly: Mixed
-  manufacturersCountryly: Mixed
-# /MANUFACTURERS
+  manufacturersByAbc: Mixed
+  manufacturersByCountry: Mixed
+  # /MANUFACTURERS
 
-# PRODUCTS
+  # PRODUCTS
   products(
     category_id: Int @eq,
     manufacturer_id: Int @eq,
@@ -64,7 +64,7 @@ extend type Query {
   ): Int! @count(model: "Product", scopes: ["active"])
 
   product(uuid: UUID @eq): Product! @find(scopes: ["active"])
-# /PRODUCTS
+  # /PRODUCTS
 }
 
 type ProductCategory {
@@ -131,7 +131,7 @@ type Product {
     views: Int
     details: Mixed
     description: String
-    description_cutted: String
+    description_short: String
     created_at: DateTime
     updated_at: DateTime
     # Methods
@@ -143,7 +143,6 @@ type Product {
     photos: [Media] @morphMany(relation: "media")
     category: ProductCategory! @belongsTo
     manufacturer: Manufacturer @belongsTo(relation: "manufacturer")
-    tags: [Tag] @morphMany
     attributes: [Attribute] @belongsToMany
 }
 
@@ -157,7 +156,7 @@ enum ProductStatus {
   HIDDEN @enum(value: 2)
 }
 
-type Country {  
+type Country {
   id: Int
   slug: String!
   title: String!

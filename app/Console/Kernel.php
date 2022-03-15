@@ -4,6 +4,9 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use App\Jobs\ProcessXmlToDbJob;
+use App\Jobs\ImportProductCategoriesJob;
+use App\Jobs\ImportProductsJob;
 
 class Kernel extends ConsoleKernel
 {
@@ -24,16 +27,16 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-      $schedule->job(new ProcessImportXmlToDb, 'import')
+      $schedule->job(new ProcessXmlToDbJob, 'import')
                 ->withoutOverlapping()
                 ->pingBefore('https://api.restoreca.ru/import/products')
                 ->timezone('Europe/Samara')
                 ->dailyAt('01:57');
-      $schedule->job(new ProcessImportCategories, 'import')
+      $schedule->job(new ImportProductCategoriesJob, 'import')
                 ->withoutOverlapping()
                 ->timezone('Europe/Samara')
                 ->dailyAt('02:00');
-      $schedule->job(new ProcessImportProducts, 'import')
+      $schedule->job(new ImportProductsJob, 'import')
                 ->withoutOverlapping()
                 ->timezone('Europe/Samara')
                 ->dailyAt('02:05');

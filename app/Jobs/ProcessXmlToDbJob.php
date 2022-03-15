@@ -14,15 +14,10 @@ use App\Models\Currency;
 use Carbon\Carbon;
 use XML;
 
-class ProcessXmlToDbJob implements ShouldQueue
+class ProcessXmlToDbJob extends ImportBaseJob
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    private $now;
-    private $todatFilename;
-    private $pathToToday;
-
     //public $tries = 60;
+
     /**
      * Determine the time at which the job should timeout.
      *
@@ -33,21 +28,7 @@ class ProcessXmlToDbJob implements ShouldQueue
         return now()->addMinutes(5);
     }
 
-    /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-      $this->onQueue('import');
-      $this->now = Carbon::now();
-      $this->todayFileName = $this->now->format('d-m-y').'.xml';
-      // $this->todayFileName = '10-08-21.xml';
-      $this->pathToToday =storage_path('app/'.$this->todayFileName);
-    }
-
-    /**
+  /**
      * Execute the job.
      *
      * @return void
@@ -64,14 +45,7 @@ class ProcessXmlToDbJob implements ShouldQueue
 
       if ($processingEvent !== null) return;
 
-      $xml = XML::import($this->pathToToday)->get();
-
-      if (!$xml) return SystemEvent::create([
-                            'type_code' => 100,
-                            'status_code' => 2,
-                            'details' => 'Файл импорта не найден.'
-                        ]);
-
+      $xml = $this->getXmlFileContent();
       $productsXml = $xml->products;
 
       foreach ($productsXml->item as $productXml) {
@@ -82,36 +56,36 @@ class ProcessXmlToDbJob implements ShouldQueue
           'Ширина' => (!empty($productXml->width)) ? "$productXml->width мм" : null,
           'Высота' => (!empty($productXml->height)) ? "$productXml->height мм" : null,
         ];
-  
+
         $optionsXml = $productXml->options;
-  
-        $itterator = 0;
+
+        $iterator = 0;
         foreach ($productXml->options->children() as $key => $option) {
-          $unit = ''.$optionsXml->options_item[$itterator];
+          $unit = ''.$optionsXml->options_item[$iterator];
           $attributes = current($option->attributes());
-  
+
           foreach ($attributes as $attributesKey => $value) {
               if ($value == '0') continue;
               $options["$attributesKey"] = $value.' '.$unit;
           }
-          $itterator++;
+          $iterator++;
         }
 
         $data = json_decode( json_encode($productXml) );
         $data->options = $options;
         DB::table('import_nodes')
-        ->updateOrInsert(
-            ['uuid' => $data->id],
-            ['data' => json_encode($data)]
-        );
+            ->updateOrInsert(
+                ['uuid' => $data->id],
+                ['data' => json_encode($data)]
+            );
       }
     }
 
     public function addCurrencies()
     {
-        $xml = XML::import($this->pathToToday)->get();
+      $xml = $this->getXmlFileContent();
+      $productsXml = $xml->products;
 
-        $productsXml = $xml->products;
         foreach ($productsXml as $product) {
             if(!empty($product->currency) && !Currency::where('title',"$product->currency")->exists()){
                 Currency::create([

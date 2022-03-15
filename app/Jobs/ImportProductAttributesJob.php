@@ -21,9 +21,8 @@ use App\Models\Attribute;
 use App\Models\SystemEvent;
 use Ramsey\Uuid\Uuid;
 
-class ImportProductAttributesJob implements ShouldQueue
+class ImportProductAttributesJob extends ImportBaseJob
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
      * Determine the time at which the job should timeout.
@@ -36,30 +35,20 @@ class ImportProductAttributesJob implements ShouldQueue
     }
 
     /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-      $this->onQueue('import');
-    }
-
-    /**
      * Execute the job.
      *
      * @return void
      */
     public function handle()
     {
-        Product::select('id', 'uuid', 'category_id', 'details')
+        Product::select('id', 'uuid', 'product_category_id', 'details')
         ->whereNotNull('details')
         ->chunk(200, function($products) {
             foreach ($products as $product) {
                 $this->addProductAttributes($product);
             }
         });
-    }    
+    }
 
     public function addProductAttributes($product)
     {
@@ -71,7 +60,7 @@ class ImportProductAttributesJob implements ShouldQueue
         $unit = $valueRaw[1] ?? null;
 
         // \Log::info('Из таблицы импорта получен аттрибут '.$formatedKey);
-        
+
         $attribute = $this->addAttribute($formatedKey, $value, $unit);
         if (
           !ProductAttribute::where('product_id', $product->id)
@@ -79,11 +68,11 @@ class ImportProductAttributesJob implements ShouldQueue
           ->first() !== null
         ) $product->attributes()
           ->attach($attribute, [
-            'value' => $value, 
-            'product_uuid' => $product->uuid, 
+            'value' => $value,
+            'product_uuid' => $product->uuid,
             'attribute_uuid' => $attribute->uuid
           ]);
-        
+
         $this->addAttributeValueToProductCategory($product->category_id, $attribute->uuid, $value);
       }
     }
@@ -103,22 +92,22 @@ class ImportProductAttributesJob implements ShouldQueue
 
       return $attribute->fresh();
     }
-    
+
     public function addAttributeValueToProductCategory($categoryId, $attributeUuid, $value)
     {
 
       $category = ProductCategory::select('uuid', 'title')->where('id', $categoryId)->first();
       if ($category === null) return;
-  
+
       $categoryAttribute = DB::table('product_category_attributes')
                           ->select('values')
                           ->where('product_category_uuid', $category->uuid)
                           ->where('attribute_uuid', $attributeUuid)
                           ->first();
-  
+
       $values = ($categoryAttribute !== null && $categoryAttribute->values !== null) ? json_decode($categoryAttribute->values) : [];
       if (is_array($values) && !in_array($value, $values)) $values[] = $value;
-  
+
       DB::table('product_category_attributes')
       ->updateOrInsert([
         'product_category_uuid' => Uuid::fromString(strtolower($category->uuid))->getBytes(),
@@ -127,5 +116,5 @@ class ImportProductAttributesJob implements ShouldQueue
         'values' => json_encode($values)
       ]);
     }
-    
+
 }

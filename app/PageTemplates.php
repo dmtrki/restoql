@@ -4,7 +4,10 @@ namespace App;
 
 trait PageTemplates
 {
-    
+  public static $templatesLabels = [
+    'default' => 'По-умолчанию'
+  ];
+
     private function default()
     {
       $this->metaFields();
@@ -12,6 +15,7 @@ trait PageTemplates
         'name' => 'content',
         'label' => 'Содержимое',
         'type' => 'wysiwyg',
+        'tab' => 'Основное'
       ]);
     }
 
@@ -100,7 +104,8 @@ trait PageTemplates
           'fake' => true,
           'store_in' => 'extras',
           'new_item_label'  => 'Добавить пункт', // customize the text of the button
-          'max_rows' => 10 // maximum rows allowed, when reached the "new item" button will be hidden
+          'max_rows' => 10,
+          'tab' => 'Содержимое'
         ],
       );
       $this->crud->addField([
@@ -109,6 +114,7 @@ trait PageTemplates
         'type' => 'textarea',
         'fake' => true,
         'store_in' => 'extras',
+        'tab' => 'Содержимое'
       ]);
     }
 
@@ -174,28 +180,32 @@ trait PageTemplates
 
     public function metaFields() {
       $this->crud->addField([   // CustomHTML
-              'name' => 'metas_separator',
-              'type' => 'custom_html',
-              'value' => '<br><h2>Мета-теги</h2><hr>',
-          ]);
+        'name' => 'metas_separator',
+        'type' => 'custom_html',
+        'value' => '<br><h2>Мета-теги</h2><hr>',
+        'tab' => 'Мета'
+      ]);
       $this->crud->addField([
-              'name' => 'meta_title',
-              'label' => trans('backpack::pagemanager.meta_title'),
-              'fake' => true,
-              'store_in' => 'extras',
-          ]);
+        'name' => 'meta_title',
+        'label' => trans('backpack::pagemanager.meta_title'),
+        'fake' => true,
+        'store_in' => 'extras',
+        'tab' => 'Мета'
+      ]);
       $this->crud->addField([
-              'name' => 'meta_description',
-              'label' => trans('backpack::pagemanager.meta_description'),
-              'fake' => true,
-              'store_in' => 'extras',
-          ]);
+        'name' => 'meta_description',
+        'label' => trans('backpack::pagemanager.meta_description'),
+        'fake' => true,
+        'store_in' => 'extras',
+        'tab' => 'Мета'
+      ]);
       $this->crud->addField([
-              'name' => 'meta_keywords',
-              'type' => 'textarea',
-              'label' => trans('backpack::pagemanager.meta_keywords'),
-              'fake' => true,
-              'store_in' => 'extras',
-          ]);
+        'name' => 'meta_keywords',
+        'type' => 'textarea',
+        'label' => trans('backpack::pagemanager.meta_keywords'),
+        'fake' => true,
+        'store_in' => 'extras',
+        'tab' => 'Мета'
+      ]);
     }
 }

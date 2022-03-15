@@ -12,7 +12,9 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Kalnoy\Nestedset\NodeTrait;
 
-
+/**
+ * @method static truncate()
+ */
 class ProductCategory extends Model
 {
     use CrudTrait, HasSlug, GeneratesUuid, InteractsWithMedia, NodeTrait;
@@ -48,7 +50,7 @@ class ProductCategory extends Model
             ->saveSlugsTo('slug');
     }
 
-    public function registerMediaCollections()
+    public function registerMediaCollections(): void
     {
         $this->addMediaCollection('picture')
               ->singleFile()
@@ -65,7 +67,7 @@ class ProductCategory extends Model
       return empty($media) ? '' : '<img style="max-width: 100%; height: 55px;" src="'.$media->getUrl().'" />';
     }
 
-    // nested 
+    // nested
 
     public function last_children()
     {
@@ -89,7 +91,7 @@ class ProductCategory extends Model
     */
     public function products()
     {
-        return $this->hasMany(Product::class, 'category_id');
+        return $this->hasMany(Product::class, 'product_category_id');
     }
 
     public function attributeGroups()
@@ -106,7 +108,7 @@ class ProductCategory extends Model
     {
         return $this->hasManyThrough(Manufacturer::class, Product::class);
     }
-    
+
     /*
     |--------------------------------------------------------------------------
     | SCOPES

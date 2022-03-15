@@ -49,9 +49,9 @@ class ImportProductImagesJob implements ShouldQueue
     {
         Product::doesntHave('media')->select('id','uuid')->chunk(200, function($products) {
         foreach ($products as $product) {
-            $file = Storage::disk('import')->files('/image/'.$product->uuid);
+            $file = Storage::disk('import')->files('/images/'.$product->uuid);
             if (!empty($file)) {
-            $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), '/var/www/__imports/'.$file[0]);
+            $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), '/home/vagrant/restoreca/api/storage/app/import/'.$file[0]);
             $supportedTypes = ['image/png', 'image/x-png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/webp'];
             if (!in_array($mime,$supportedTypes)) continue;
 

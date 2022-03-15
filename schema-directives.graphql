@@ -345,6 +345,56 @@ directive @validator(
   class: String
 ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION | FIELD_DEFINITION | INPUT_OBJECT
 
+# Directive class: Nuwave\Lighthouse\WhereConditions\WhereConditionsDirective
+"""
+Add a dynamically client-controlled WHERE condition to a fields query.
+"""
+directive @whereConditions(
+    """
+    Restrict the allowed column names to a well-defined list.
+    This improves introspection capabilities and security.
+    Mutually exclusive with the `columnsEnum` argument.
+    """
+    columns: [String!]
+
+    """
+    Use an existing enumeration type to restrict the allowed columns to a predefined list.
+    This allowes you to re-use the same enum for multiple fields.
+    Mutually exclusive with the `columns` argument.
+    """
+    columnsEnum: String
+) on ARGUMENT_DEFINITION
+
+# Directive class: Nuwave\Lighthouse\WhereConditions\WhereHasConditionsDirective
+"""
+Allows clients to filter a query based on the existence of a related model, using
+a dynamically controlled `WHERE` condition that applies to the relationship.
+"""
+directive @whereHasConditions(
+    """
+    The Eloquent relationship that the conditions will be applied to.
+
+    This argument can be omitted if the argument name follows the naming
+    convention `has{$RELATION}`. For example, if the Eloquent relationship
+    is named `posts`, the argument name must be `hasPosts`.
+    """
+    relation: String
+
+    """
+    Restrict the allowed column names to a well-defined list.
+    This improves introspection capabilities and security.
+    Mutually exclusive with the `columnsEnum` argument.
+    """
+    columns: [String!]
+
+    """
+    Use an existing enumeration type to restrict the allowed columns to a predefined list.
+    This allowes you to re-use the same enum for multiple fields.
+    Mutually exclusive with the `columns` argument.
+    """
+    columnsEnum: String
+) on ARGUMENT_DEFINITION
+
 # Directive class: Nuwave\Lighthouse\Schema\Directives\AggregateDirective
 """
 Returns an aggregate of a column in a given relationship or model.

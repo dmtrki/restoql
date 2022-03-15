@@ -33,7 +33,7 @@ class Product extends Model implements HasMedia
     protected $fillable = [
         'uuid',
         'slug',
-        'category_id',
+        'product_category_id',
         'manufacturer_id',
         'status_code',
         'title',
@@ -93,7 +93,7 @@ class Product extends Model implements HasMedia
 
     public function category(): BelongsTo
     {
-      return $this->belongsTo(ProductCategory::class)->select('id', 'uuid', 'title', 'slug');
+      return $this->belongsTo(ProductCategory::class, 'product_category_id')->select('id', 'uuid', 'title', 'slug');
     }
 
     public function manufacturer(): BelongsTo
@@ -211,8 +211,8 @@ class Product extends Model implements HasMedia
     {
       if (!$this->details['description']) return null;
 
-      return (is_array($this->details['description'])) 
-             ? $this->details['description'][0] 
+      return (is_array($this->details['description']))
+             ? $this->details['description'][0]
              : $this->details['description'];
     }
 

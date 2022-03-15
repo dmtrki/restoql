@@ -39,7 +39,8 @@ return [
 
         'import' => [
           'driver' => 'local',
-          'root' => '/var/www/__imports/',
+//          'root' => '/var/www/__imports/',
+          'root' => storage_path('app/import'),
           'visibility' => 'private',
         ],
 

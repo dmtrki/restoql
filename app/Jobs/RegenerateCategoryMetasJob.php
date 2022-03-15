@@ -9,19 +9,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class GenerateCategoryMetas implements ShouldQueue
+class RegenerateCategoryMetasJob extends ImportBaseJob
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-      $this->onQueue('import');
-    }
 
     /**
      * Execute the job.
@@ -38,23 +27,23 @@ class GenerateCategoryMetas implements ShouldQueue
       $categories = ProductCategory::all();
 
       foreach ($categories as $key => $category) {
-       
+
 
         $maxPrice = DB::table('products')
-                      ->where('category_id', $category->id)                      
+                      ->where('category_id', $category->id)
                       ->where('price', '!=', 0)
                       ->max('price');
         $minPrice = DB::table('products')
           ->where('category_id', $category->id)
           ->where('price', '!=', 0)
           ->min('price');
-        
-        
+
+
         Redis::set('category_price_range:'.$category->id, $minPrice.'-'.$maxPrice);
         var_dump(Redis::get('category_price_range:'.$category->id));
         echo '<hr/>';
       }
-      
+
     }
 
     public function generateThumbs(Request $request)
